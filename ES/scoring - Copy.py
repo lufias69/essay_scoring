@@ -10,7 +10,7 @@ from Nawa import tf_idf as w
 from Nawa import ngram
 from Nawa import normalisasi as nrm
 
-# fitur =list("abcdefghijklmnopqrstufwxyz 1234567890")
+fitur =list("abcdefghijklmnopqrstufwxyz 1234567890")
 
 def t2c(text):
     lst = list(text)
@@ -19,11 +19,11 @@ def t2c(text):
 def transform(simmm):
     if simmm <= 0.25:
         return "sangat tidak mirip"
-    elif simmm <= 0.75:
+    elif simmm <= 0.5:
         return "tidak mirip"
-    elif simmm <= 0.90:
+    elif simmm <= 0.80:
         return "mirip"
-    elif simmm <= 1.0002:
+    elif simmm <= 1.2:
         return "sangat mirip"
     else:
         return "error"
@@ -46,9 +46,10 @@ def cek_negasi_list(kunci_jawaban):
     new_kj = list()
     for i in kunci_jawaban:
         i = nrm.ubah_simbol(i)
-        # hasil = nrm.cek_negasi(kata_negasi,i)
-        new_kj.append(nrm.cek_negasi(kata_negasi,i))
+        hasil = nrm.cek_negasi(kata_negasi,i)
+        new_kj.append(hasil)
     return new_kj
+#cek_negasi_list("tidak telepon pada 02173811111 website buanawisata.com")
 
 def get_unik(kunci_jawaban):
     if type(kunci_jawaban) is not list:
@@ -58,8 +59,8 @@ def get_unik(kunci_jawaban):
         i = nrm.ubah_simbol(i)
         for j in i.split():
             list_kata_kj.append(j)
-    # list_kata_kj = list(set(list_kata_kj))
-    return list(set(list_kata_kj))
+    list_kata_kj = list(set(list_kata_kj))
+    return list_kata_kj
 
 
 def praproses(jawaban, kunci_jawaban_unik):
@@ -73,12 +74,12 @@ def praproses(jawaban, kunci_jawaban_unik):
         if i not in jawaban:
             jawaban.append(i)
     jawaban = " ".join(jawaban)
-    # jawaban = nrm.cek_negasi(kata_negasi, jawaban)
-    return nrm.cek_negasi(kata_negasi, jawaban)
+    jawaban = nrm.cek_negasi(kata_negasi, jawaban)
+    return jawaban
 
 
 
-def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
+def essay_jaccard_similarity(kunci_jawaban, jawaban, bychar=False, fixed=False):
     if type(kunci_jawaban) != list:
         kunci_jawaban = [kunci_jawaban]
     kunci_jawaban = cek_negasi_list(kunci_jawaban)
@@ -88,14 +89,14 @@ def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
     # print(jawaban)
     simm = list()   
     for kj in kunci_jawaban:
-        fitur_ = list(set(kj.split()))
-        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)
-        # print(t.A)
+        fitur = list(set(kj.split()))
+        #print(fitur)
+        t = w.tf_idf(kj, jawaban, fitur)
         jaccard = simi.jaccard(t.A[0], t.A[1])
         simm.append(jaccard)
-    return [round(max(simm),10), transform(max(simm))]
+    return [max(simm), transform(max(simm))]
 
-def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
+def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=True):
     if type(kunci_jawaban) != list:
         kunci_jawaban = [kunci_jawaban]
     kunci_jawaban = cek_negasi_list(kunci_jawaban)
@@ -105,15 +106,23 @@ def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
     # print(jawaban)
     simm = list()   
     for kj in kunci_jawaban:
+        if char == True and fitur==True:
+            print("tt",end="")
+        elif char == True and fitur==False:
+            print("tf",end="")
+        elif char == False and fitur==True:
+            print("ft",end="")
+        elif char == False and fitur==False:
+            print("ff",end="")
         fitur_ = list(set(kj.split()))
         t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)
-        # print(t.A)
+        print(t.A)
         cosine = simi.cosine_similarity(t.A[0], t.A[1])
         simm.append(cosine)
     return [round(max(simm),10), transform(max(simm))]
 
 
-def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
+def essay_dice_similarity(kunci_jawaban, jawaban, bychar=False, fixed=False):
     if type(kunci_jawaban) != list:
         kunci_jawaban = [kunci_jawaban]
     kunci_jawaban = cek_negasi_list(kunci_jawaban)
@@ -123,21 +132,21 @@ def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
     # print(jawaban)
     simm = list()   
     for kj in kunci_jawaban:
-        fitur_ = list(set(kj.split()))
-        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)
+        # print(t2c(kj))
+        t = w.tf_idf(kj, jawaban, fitur)
         # print(t.A)
         dice = simi.dice_similarity(t.A[0], t.A[1])
-        simm.append(dice)
-    return [round(max(simm),10), transform(max(simm))]
+        print(dice)
+        # simm.append(dice)
+    # return [max(simm), transform(max(simm))]
 
 
-def scoring_cosine(jawaban, kuncijawaban_list, skor_list, keterangan, char=False, fitur=False):
+def scoring_cosine(jawaban, kuncijawaban_list, skor_list, keterangan, bychar=False, fixed=False):
     ratio=list()
     tranform = list()
     for i in kuncijawaban_list:
         # rat = fuzz.token_set_ratio(i, gejala)
-        # rat = essay_cosine_similarity(i, jawaban, bychar, fixed)
-        rat =  essay_cosine_similarity(i, jawaban, fitur=fitur, char = char)
+        rat = essay_cosine_similarity(i, jawaban, bychar, fixed)
         ratio.append(rat[0])
         tranform.append(rat[1])
 
@@ -154,16 +163,17 @@ def scoring_cosine(jawaban, kuncijawaban_list, skor_list, keterangan, char=False
     similarity = round(sorted_['similarity'].tolist()[0],3)
     ket = sorted_['keterangan'].tolist()[0]
     tr = sorted_['transform'].tolist()[0]
-
+    # print("skor       ",skor)
+    # print("similarity ",similarity)
+    # print("transform  ",tr)
     return [skor, ket, similarity, tr, sorted_]
 
-def scoring_jaccard(jawaban, kuncijawaban_list, skor_list, keterangan, char=False, fitur=False):
+def scoring_jaccard(jawaban, kuncijawaban_list, skor_list, keterangan):
     ratio=list()
     tranform = list()
     for i in kuncijawaban_list:
         # rat = fuzz.token_set_ratio(i, gejala)
-        rat = essay_jaccard_similarity(i, jawaban, fitur=fitur, char = char)
-        # rat = essay_jaccard_similarity(i, jawaban)
+        rat = essay_jaccard_similarity(i, jawaban)
         ratio.append(rat[0])
         tranform.append(rat[1])
 
@@ -180,15 +190,17 @@ def scoring_jaccard(jawaban, kuncijawaban_list, skor_list, keterangan, char=Fals
     similarity = round(sorted_['similarity'].tolist()[0],3)
     ket = sorted_['keterangan'].tolist()[0]
     tr = sorted_['transform'].tolist()[0]
+    # print("skor       ",skor)
+    # print("similarity ",similarity)
+    # print("transform  ",tr)
     return [skor, ket, similarity, tr, sorted_]
 
-def scoring_dice(jawaban, kuncijawaban_list, skor_list, keterangan, char=False, fitur=False):
+def scoring_dice(jawaban, kuncijawaban_list, skor_list, keterangan):
     ratio=list()
     tranform = list()
     for i in kuncijawaban_list:
         # rat = fuzz.token_set_ratio(i, gejala)
-        # rat = essay_dice_similarity(i, jawaban)
-        rat = essay_dice_similarity(i, jawaban, fitur=fitur, char = char)
+        rat = essay_dice_similarity(i, jawaban)
         ratio.append(rat[0])
         tranform.append(rat[1])
 
@@ -205,7 +217,9 @@ def scoring_dice(jawaban, kuncijawaban_list, skor_list, keterangan, char=False, 
     similarity = round(sorted_['similarity'].tolist()[0],3)
     ket = sorted_['keterangan'].tolist()[0]
     tr = sorted_['transform'].tolist()[0]
-  
+    # print("skor       ",skor)
+    # print("similarity ",similarity)
+    # print("transform  ",tr)
     return [skor, ket, similarity, tr, sorted_]
 
 def seleksi_kunci_jawaban(df_kj):
@@ -213,7 +227,7 @@ def seleksi_kunci_jawaban(df_kj):
     skor_list = df_kj["skor"].tolist()
     keterangan = df_kj["keterangan"].tolist()
 
-    kuncijawaban = w.tf_idf_(kuncijawaban_list).A
+    kuncijawaban = w.tf_idf_(kuncijawaban_list)
 
     kuncijawaban_n = list()
     kuncijawaban_n2 = list()
@@ -259,3 +273,10 @@ def cosine_huruf(kunci_jawaban, jawaban):
     for kj in kunci_jawaban:
         simm.append(simi.cosine_sim(jawaban,kj))
     return [max(simm), transform(max(simm))]
+
+        
+        
+
+
+
+
