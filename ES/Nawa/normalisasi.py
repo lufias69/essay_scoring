@@ -3,6 +3,7 @@ import sys
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
 import cosine_string as cs
+import similarity_ as csim
 from pyjarowinkler import distance
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
@@ -22,8 +23,9 @@ def cek_typo(kunci_jawaban, jawaban, toleransi=0.95):
     n_jawaban = jawaban_split
     kunci_jawaban_ = []
     for j in kunci_jawaban_split:
-        w_1.append(distance.get_jaro_distance(jawaban_split[i], j, winkler=True, scaling=0.1))
+        # w_1.append(distance.get_jaro_distance(jawaban_split[i], j, winkler=True, scaling=0.1))
         #         w_1.append(cs.cosine_string(jawaban_split[i], j))
+        w_1.append(csim.cosine_sim(jawaban_split[i], j))
         kunci_jawaban_.append(j)
     if round(max(w_1),4) != 1.0 and max(w_1) > toleransi:
       index = w_1.index(max(w_1))

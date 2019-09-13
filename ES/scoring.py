@@ -63,7 +63,7 @@ def get_unik(kunci_jawaban):
     
 def praproses(jawaban, kunci_jawaban_unik):
     jawaban = nrm.ubah_simbol(jawaban)
-    # jawaban = nrm.pisahKata(kunci_jawaban_unik, jawaban)
+    jawaban = nrm.pisahKata(kunci_jawaban_unik, jawaban)
     jawaban = nrm.cek_typo(kunci_jawaban_unik, jawaban, 0.96)
     jawaban_ngram = ngram.en_geram(kunci_jawaban_unik, jawaban).split()
     # print("n-gram",jawaban_ngram)
@@ -76,7 +76,7 @@ def praproses(jawaban, kunci_jawaban_unik):
     # print(jawaban)
     return nrm.cek_negasi(kata_negasi, jawaban)
 
-def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
+def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=True):
     if type(kunci_jawaban) != list:
         kunci_jawaban = [kunci_jawaban]
     kunci_jawaban = cek_negasi_list(kunci_jawaban)
@@ -93,7 +93,7 @@ def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
         simm.append(jaccard)
     return [round(max(simm),10), transform(max(simm))]
 
-def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
+def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=True):
     if type(kunci_jawaban) != list:
         kunci_jawaban = [kunci_jawaban]
     kunci_jawaban = cek_negasi_list(kunci_jawaban)
@@ -111,7 +111,7 @@ def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
     return [round(max(simm),10), transform(max(simm))]
 
 
-def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
+def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=True):
     if type(kunci_jawaban) != list:
         kunci_jawaban = [kunci_jawaban]
     kunci_jawaban = cek_negasi_list(kunci_jawaban)
@@ -128,7 +128,7 @@ def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=False):
         simm.append(dice)
     return [round(max(simm),10), transform(max(simm))]
 
-def scoring_cosine(jawaban, kuncijawaban_list, skor_list, char=False, fitur=False):
+def scoring_cosine(jawaban, kuncijawaban_list, skor_list, char=False, fitur=True):
     ratio=list()
     tranform = list()
     for i in kuncijawaban_list:
@@ -155,7 +155,7 @@ def scoring_cosine(jawaban, kuncijawaban_list, skor_list, char=False, fitur=Fals
     return [skor, similarity, tr, sorted_]
     # return {"skor":skor, "similarity":similarity, "transform":tr, "sorted":sorted_}
 
-def scoring_jaccard(jawaban, kuncijawaban_list, skor_list, char=False, fitur=False):
+def scoring_jaccard(jawaban, kuncijawaban_list, skor_list, char=False, fitur=True):
     ratio=list()
     tranform = list()
     for i in kuncijawaban_list:
@@ -181,7 +181,7 @@ def scoring_jaccard(jawaban, kuncijawaban_list, skor_list, char=False, fitur=Fal
     return [skor, similarity, tr, sorted_]
     # return {"skor":skor, "similarity":similarity, "transform":tr, "sorted":sorted_}
 
-def scoring_dice(jawaban, kuncijawaban_list, skor_list,  char=False, fitur=False):
+def scoring_dice(jawaban, kuncijawaban_list, skor_list,  char=False, fitur=True):
     ratio=list()
     tranform = list()
     for i in kuncijawaban_list:
@@ -246,54 +246,63 @@ def seleksi_kunci_jawaban(df_kj):
         i+=1
     return {"kunci_jawaban":kuncijawaban_n2, "skor":skor_n}
 
+def predict(kunci_jawaban, jawaban,  metode = "cosine", char=False, fitur=True):
+    if metode == "cosine":
+        return essay_cosine_similarity(kunci_jawaban = kunci_jawaban , jawaban = jawaban, char=char, fitur=fitur)
+    if metode == "jaccard":
+        return essay_jaccard_similarity(kunci_jawaban = kunci_jawaban , jawaban = jawaban, char=char, fitur=fitur)
+    if metode == "dice":
+        return essay_dice_similarity(kunci_jawaban = kunci_jawaban , jawaban = jawaban, char=char, fitur=fitur)
+    else:
+        return "Metode "+metode+" belum dibuat, silahkan gunakan metode 'cosine', 'dice', atau 'jaccard'"
 
-def cosine_huruf(kunci_jawaban, jawaban):
-    if type(kunci_jawaban) != list:
-        kunci_jawaban = [kunci_jawaban]
-    kunci_jawaban = cek_negasi_list(kunci_jawaban)
-    kunci_jawaban_unik = " ".join(get_unik(kunci_jawaban))
-    # print(kunci_jawaban_unik)
-    jawaban = praproses(jawaban, kunci_jawaban_unik)
-    # print(jawaban)
-    simm = list()   
-    for kj in kunci_jawaban:
-        simm.append(simi.cosine_sim(jawaban,kj))
-    return [max(simm), transform(max(simm))]
+# def cosine_huruf(kunci_jawaban, jawaban):
+#     if type(kunci_jawaban) != list:
+#         kunci_jawaban = [kunci_jawaban]
+#     kunci_jawaban = cek_negasi_list(kunci_jawaban)
+#     kunci_jawaban_unik = " ".join(get_unik(kunci_jawaban))
+#     # print(kunci_jawaban_unik)
+#     jawaban = praproses(jawaban, kunci_jawaban_unik)
+#     # print(jawaban)
+#     simm = list()   
+#     for kj in kunci_jawaban:
+#         simm.append(simi.cosine_sim(jawaban,kj))
+#     return [max(simm), transform(max(simm))]
 
-def seleksi_data(respon, label, char = False, batas = .96):
-    kuncijawaban_list = respon
-    skor_list = label
-    # keterangan = df_kj["keterangan"].tolist() char = False
+# def seleksi_data(respon, label, char = False, batas = .96):
+#     kuncijawaban_list = respon
+#     skor_list = label
+#     # keterangan = df_kj["keterangan"].tolist() char = False
 
-    kuncijawaban = w.tf_idf_(kuncijawaban_list, char = char).A
+#     kuncijawaban = w.tf_idf_(kuncijawaban_list, char = char).A
 
-    kuncijawaban_n = list()
-    kuncijawaban_n2 = list()
-    skor_n = list()
-    # keterangan_n = list()
-    i = 0
-    for kj, skr, old in zip(kuncijawaban, skor_list, kuncijawaban_list):
-        flag = True
-        if i!=0:
-            for j in kuncijawaban_n:
-                cosine = simi.cosine_similarity(j, kj)
-                # print(cosine)
-                if cosine > batas:
-                    # print("lebih")
-                    flag = False
-                    break
-                else:
-                    continue
-        else:
-            kuncijawaban_n.append(kj)
-            kuncijawaban_n2.append(old)
-            skor_n.append(skr)
-            # keterangan_n.append(ket)
+#     kuncijawaban_n = list()
+#     kuncijawaban_n2 = list()
+#     skor_n = list()
+#     # keterangan_n = list()
+#     i = 0
+#     for kj, skr, old in zip(kuncijawaban, skor_list, kuncijawaban_list):
+#         flag = True
+#         if i!=0:
+#             for j in kuncijawaban_n:
+#                 cosine = simi.cosine_similarity(j, kj)
+#                 # print(cosine)
+#                 if cosine > batas:
+#                     # print("lebih")
+#                     flag = False
+#                     break
+#                 else:
+#                     continue
+#         else:
+#             kuncijawaban_n.append(kj)
+#             kuncijawaban_n2.append(old)
+#             skor_n.append(skr)
+#             # keterangan_n.append(ket)
             
-        if flag == True:
-            kuncijawaban_n.append(kj)
-            kuncijawaban_n2.append(old)
-            skor_n.append(skr)
-            # keterangan_n.append(ket)
-        i+=1
-    return {"respon":kuncijawaban_n2, "label":skor_n}
+#         if flag == True:
+#             kuncijawaban_n.append(kj)
+#             kuncijawaban_n2.append(old)
+#             skor_n.append(skr)
+#             # keterangan_n.append(ket)
+#         i+=1
+#     return {"respon":kuncijawaban_n2, "label":skor_n}

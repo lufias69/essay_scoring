@@ -32,7 +32,7 @@ def idx (i, ax):
             index.append(ix+1)
     sum_ = sum(index)
     # avg_ = Average(index)
-    # mul = multiplyList(index)
+    mul = multiplyList(index)
     # return sum_/math.sqrt(math.log(mul,2))
     # return sum_/math.log(mul,2)
     return math.log(sum_)/math.log(math.sqrt(mul),2)
