@@ -13,7 +13,7 @@ def cosine_similarity(x, y):
         numerator = sum(a * b for a, b in zip(x, y))
         denominator = square_rooted(x) * square_rooted(y)
         hasil = numerator / float(denominator)
-        return hasil
+        return round(hasil,15)
 
 def jaccard(x, y):
     numerator = [a * b for a, b in zip(x, y)]
