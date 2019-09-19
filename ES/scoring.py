@@ -18,28 +18,28 @@ def t2c(text):
     lst = list(text)
     return " ".join(lst)
 
-def transform(simmm):
-    if simmm <= 0.50:
-        return "sangat tidak mirip"
-    elif simmm <= 0.75:
-        return "tidak mirip"
-    elif simmm <= 0.80:
-        return "mirip"
-    elif simmm <= 1.0002:
-        return "sangat mirip"
-    else:
-        return "error"
+# def transform(simmm):
+#     if simmm <= 0.50:
+#         return "sangat tidak mirip"
+#     elif simmm <= 0.75:
+#         return "tidak mirip"
+#     elif simmm <= 0.80:
+#         return "mirip"
+#     elif simmm <= 1.0002:
+#         return "sangat mirip"
+#     else:
+#         return "error"
 
-def cek_mised(data):
-    # print(data)
-    if data == "tidak mirip":
-        return "missed"
-    elif data == "sangat tidak mirip":
-        return "wrong"
-    elif data == "mirip" or data == "sangat mirip":
-        return "correct"
-    else:
-        return "error"
+# def cek_mised(data):
+#     # print(data)
+#     if data == "tidak mirip":
+#         return "missed"
+#     elif data == "sangat tidak mirip":
+#         return "wrong"
+#     elif data == "mirip" or data == "sangat mirip":
+#         return "correct"
+#     else:
+#         return "error"
 
 
 def stopword_list(list_kata):
@@ -86,6 +86,7 @@ def praproses_(jawaban, kunci_jawaban_unik):
     # print(jawaban)
     return nrm.cek_negasi(kata_negasi, jawaban)
 
+# def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=True, praproses=True):
 def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=True, praproses=True):
     if type(kunci_jawaban) != list:
         kunci_jawaban = [kunci_jawaban]
@@ -96,37 +97,23 @@ def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=True, pra
     if praproses == True:
         jawaban = praproses_(jawaban, kunci_jawaban_unik)
     # print(jawaban)
-    simm = list()   
-    for kj in kunci_jawaban:
+    simm = list()
+    idx = list()
+    bobot = list()
+    for ix, kj in enumerate(kunci_jawaban):
         fitur_ = list(set(kj.split()))
-        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)
-        # print(t.A)
-        jaccard = simi.jaccard(t.A[0], t.A[1])
+        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
+        t_x = t.transform([kj, jawaban]).toarray()
+        bobot.append(t_x)
+        # print(t_x)
+        jaccard = simi.jaccard(t_x[0], t_x[1])
         simm.append(jaccard)
-    return [round(max(simm),10), transform(max(simm)), jawaban]
+        idx.append(ix)
+    max_sim = max(simm)
+    max_idx = simm.index(max_sim)
+    return [max_sim, max_idx, bobot,jawaban]
 
-def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=True, praproses=False):
-    if type(kunci_jawaban) != list:
-        kunci_jawaban = [kunci_jawaban]
-    kunci_jawaban = cek_negasi_list(kunci_jawaban)
-    kunci_jawaban = stopword_list(kunci_jawaban)
-    # print(kunci_jawaban)
-    kunci_jawaban_unik = " ".join(get_unik(kunci_jawaban))
-    # print(kunci_jawaban_unik)
-    # print(jawaban)
-    if praproses == True:
-        jawaban = praproses_(jawaban, kunci_jawaban_unik)
-        # print(jawaban)
-    
-    simm = list()   
-    for kj in kunci_jawaban:
-        fitur_ = list(set(kj.split()))
-        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)
-        # print(t.A)
-        cosine = simi.cosine_similarity(t.A[0], t.A[1])
-        simm.append(cosine)
-    return [round(max(simm),10), transform(max(simm)), jawaban]
-
+# def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=True, praproses=True):
 def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=True, praproses=True):
     if type(kunci_jawaban) != list:
         kunci_jawaban = [kunci_jawaban]
@@ -137,24 +124,115 @@ def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=True, prapro
     if praproses == True:
         jawaban = praproses_(jawaban, kunci_jawaban_unik)
     # print(jawaban)
-    simm = list()   
-    for kj in kunci_jawaban:
+    simm = list()
+    idx = list()
+    bobot = list()
+    for ix, kj in enumerate(kunci_jawaban):
         fitur_ = list(set(kj.split()))
-        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)
-        # print(t.A)
-        dice = simi.dice_similarity(t.A[0], t.A[1])
+        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
+        t_x = t.transform([kj, jawaban]).toarray()
+        bobot.append(t_x)
+        # print(t_x)
+        dice = simi.dice_similarity(t_x[0], t_x[1])
         simm.append(dice)
-    return [round(max(simm),10), transform(max(simm)), jawaban]
+        idx.append(ix)
+    max_sim = max(simm)
+    max_idx = simm.index(max_sim)
+    return [max_sim, max_idx, bobot,jawaban]
 
-def predict(kunci_jawaban, jawaban,  metode = "cosine", char=False, fitur=True, praproses=False):
+def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=True, praproses=True):
+    if type(kunci_jawaban) != list:
+        kunci_jawaban = [kunci_jawaban]
+    kunci_jawaban = cek_negasi_list(kunci_jawaban)
+    kunci_jawaban = stopword_list(kunci_jawaban)
+    kunci_jawaban_unik = " ".join(get_unik(kunci_jawaban))
+    # print(kunci_jawaban_unik)
+    if praproses == True:
+        jawaban = praproses_(jawaban, kunci_jawaban_unik)
+    # print(jawaban)
+    simm = list()
+    idx = list()
+    bobot = list()
+    for ix, kj in enumerate(kunci_jawaban):
+        fitur_ = list(set(kj.split()))
+        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
+        t_x = t.transform([kj, jawaban]).toarray()
+        bobot.append(t_x)
+        # print(t_x)
+        cosine = simi.cosine_similarity(t_x[0], t_x[1])
+        simm.append(cosine)
+        idx.append(ix)
+    max_sim = max(simm)
+    max_idx = simm.index(max_sim)
+    return [max_sim, max_idx, bobot,jawaban]
+
+def predict(kunci_jawaban, jawaban,  metode = "cosine", char=False, fitur=False, praproses=False):
     if metode == "cosine":
         return essay_cosine_similarity(kunci_jawaban = kunci_jawaban , jawaban = jawaban, char=char, fitur=fitur, praproses=praproses)
-    if metode == "jaccard":
+    elif metode == "jaccard":
         return essay_jaccard_similarity(kunci_jawaban = kunci_jawaban , jawaban = jawaban, char=char, fitur=fitur, praproses=praproses)
-    if metode == "dice":
+    elif metode == "dice":
         return essay_dice_similarity(kunci_jawaban = kunci_jawaban , jawaban = jawaban, char=char, fitur=fitur, praproses=praproses)
     else:
         return "Metode "+metode+" belum dibuat, silahkan gunakan metode 'cosine', 'dice', atau 'jaccard'"
+
+def scoring(kunci_jawaban, skor, jawaban,  metode = "cosine", char=False, fitur=True, praproses=False, batas_nilai_max = .579738671537667):
+    # sim_list = list()
+    # skor_list = list()
+    # print(len(jawaban))
+    hasil = predict(kunci_jawaban, jawaban,  metode = metode, char=char, fitur=fitur, praproses=praproses)
+    skor_ = skor[hasil[1]]
+    if hasil[0] < batas_nilai_max and len(jawaban)>2:
+        # print('sisni')
+        skor_=0
+    elif len(jawaban)<2 or type(jawaban) is float:
+        skor_=9
+    return [hasil[0], skor_, hasil[2], hasil[-1]]
+
+# def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=True, praproses=False):
+#     if type(kunci_jawaban) != list:
+#         kunci_jawaban = [kunci_jawaban]
+#     kunci_jawaban = cek_negasi_list(kunci_jawaban)
+#     kunci_jawaban = stopword_list(kunci_jawaban)
+#     # print(kunci_jawaban)
+#     kunci_jawaban_unik = " ".join(get_unik(kunci_jawaban))
+#     # print(kunci_jawaban_unik)
+#     # print(jawaban)
+#     if praproses == True:
+#         jawaban = praproses_(jawaban, kunci_jawaban_unik)
+#         # print(jawaban)
+    
+#     simm = list()   
+#     for kj in kunci_jawaban:
+#         fitur_ = list(set(kj.split()))
+#         t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)
+#         # print(t.A)
+#         cosine = simi.cosine_similarity(t.A[0], t.A[1])
+#         simm.append(cosine)
+#     return [round(max(simm),10), transform(max(simm)), jawaban]
+
+# def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=True, praproses=True):
+#     if type(kunci_jawaban) != list:
+#         kunci_jawaban = [kunci_jawaban]
+#     kunci_jawaban = cek_negasi_list(kunci_jawaban)
+#     kunci_jawaban = stopword_list(kunci_jawaban)
+#     kunci_jawaban_unik = " ".join(get_unik(kunci_jawaban))
+#     # print(kunci_jawaban_unik)
+#     if praproses == True:
+#         jawaban = praproses_(jawaban, kunci_jawaban_unik)
+#     # print(jawaban)
+#     simm = list()   
+#     for kj in kunci_jawaban:
+#         fitur_ = list(set(kj.split()))
+#         t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)
+#         # print(t.A)
+#         dice = simi.dice_similarity(t.A[0], t.A[1])
+#         simm.append(dice)
+#     return [round(max(simm),10), transform(max(simm)), jawaban]
+
+
+
+
 
 # def scoring_cosine(jawaban, kuncijawaban_list, skor_list, char=False, fitur=True):
 #     ratio=list()
