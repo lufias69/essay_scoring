@@ -7,6 +7,7 @@ sys.path.append(dir_path)
 
 from Nawa import similarity as simi
 from Nawa import tf_idf as w
+from Nawa import tf_idf_ as w2
 from Nawa import ngram
 from Nawa import normalisasi as nrm
 

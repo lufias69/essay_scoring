@@ -6,6 +6,7 @@ sys.path.append(dir_path)
 import pandas as pd
 from Nawa import similarity_ as simi
 from Nawa import tf_idf as w
+from Nawa import tf_idf_ as w2
 from Nawa import ngram
 from Nawa import normalisasi as nrm
 from stopword import stopwords as stp
@@ -102,8 +103,11 @@ def essay_jaccard_similarity(kunci_jawaban, jawaban, char=False, fitur=True, pra
     bobot = list()
     for ix, kj in enumerate(kunci_jawaban):
         fitur_ = list(set(kj.split()))
-        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
-        t_x = t.transform([kj, jawaban]).toarray()
+        if char == True or fitur == True:
+            t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
+            t_x = t.transform([kj, jawaban]).toarray()
+        else:
+            t_x = w2.tf_idf([kj, jawaban], vocab=fitur_)
         bobot.append(t_x)
         # print(t_x)
         jaccard = simi.jaccard(t_x[0], t_x[1])
@@ -129,8 +133,12 @@ def essay_dice_similarity(kunci_jawaban, jawaban, char=False, fitur=True, prapro
     bobot = list()
     for ix, kj in enumerate(kunci_jawaban):
         fitur_ = list(set(kj.split()))
-        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
-        t_x = t.transform([kj, jawaban]).toarray()
+        if char == True or fitur == True:
+            t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
+            t_x = t.transform([kj, jawaban]).toarray()
+        else:
+            t_x = w2.tf_idf([kj, jawaban], vocab=fitur_)
+            # t_x = w2.tf_idf([kj, jawaban], vocab=fitur_)
         bobot.append(t_x)
         # print(t_x)
         dice = simi.dice_similarity(t_x[0], t_x[1])
@@ -155,8 +163,9 @@ def essay_cosine_similarity(kunci_jawaban, jawaban, char=False, fitur=True, prap
     bobot = list()
     for ix, kj in enumerate(kunci_jawaban):
         fitur_ = list(set(kj.split()))
-        t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
-        t_x = t.transform([kj, jawaban]).toarray()
+        # t = w.tf_idf(kj, jawaban, vocab=fitur_, fitur=fitur, char = char)[1]
+        # t_x = t.transform([kj, jawaban]).toarray()
+        t_x = w2.tf_idf([kj, jawaban], vocab=fitur_)
         bobot.append(t_x)
         # print(t_x)
         cosine = simi.cosine_similarity(t_x[0], t_x[1])
